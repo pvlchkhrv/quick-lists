@@ -6,8 +6,12 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.components'),
   },
   {
+    path: 'checklist/:id',
+    loadComponent: () => import('./checklist/checklist.component'),
+  },
+  {
     path: '',
     redirectTo: 'home',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
 ];
