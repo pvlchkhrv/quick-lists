@@ -16,6 +16,8 @@ import { ChecklistItem, RemoveChecklistItem } from '../../shared/interfaces/chec
             </div>
             <div>
               <button (click)="toggle.emit(item.id)">Toggle</button>
+              <button (click)="edit.emit(item)">Edit</button>
+              <button (click)="delete.emit(item.id)">Delete</button>
             </div>
           </li>
         } @empty {
@@ -31,5 +33,7 @@ import { ChecklistItem, RemoveChecklistItem } from '../../shared/interfaces/chec
 })
 export class ChecklistItemList {
   @Input({ required: true }) checklistItems!: ChecklistItem[];
-  @Output() toggle = new EventEmitter<RemoveChecklistItem>();
+  @Output() toggle = new EventEmitter<ChecklistItem['id']>();
+  @Output() delete = new EventEmitter<RemoveChecklistItem>();
+  @Output() edit = new EventEmitter<ChecklistItem>();
 }

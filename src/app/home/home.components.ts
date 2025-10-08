@@ -10,11 +10,15 @@ import { ChecklistList } from "./ui/checklist-list.component";
   selector: 'app-home',
   template: `
     <header>
-      <h1>Quicklists</h1>
+      <h1>Quick Lists</h1>
       <button (click)="checklistBeingEdited.set({})">Add Checklist</button>
     </header>
 
-    <app-checklist-list [checklistList]="checklistService.checklists()" />
+    <app-checklist-list
+      [checklistList]="checklistService.checklists()"
+      (delete)="checklistService.remove$.next($event)"
+      (edit)="checklistBeingEdited.set($event)"
+    />
 
     <app-modal [isOpen]="!!checklistBeingEdited()">
       <ng-template>
@@ -22,7 +26,14 @@ import { ChecklistList } from "./ui/checklist-list.component";
           [title]="checklistBeingEdited()?.title ? checklistBeingEdited()!.title! : 'Add Checklist'"
           [formGroup]="checklistForm"
           (close)="checklistBeingEdited.set(null)"
-          (save)="checklistService.add$.next(checklistForm.getRawValue())"
+          (save)="
+            checklistBeingEdited()?.id
+              ? checklistService.edit$.next({
+                  id: checklistBeingEdited()!.id!,
+                  data: checklistForm.getRawValue()
+                })
+              : checklistService.add$.next(checklistForm.getRawValue())
+          "
         />
       </ng-template>
     </app-modal>
@@ -44,6 +55,10 @@ export default class HomeComponent {
 
       if (!checklist) {
         this.checklistForm.reset();
+      } else {
+        this.checklistForm.patchValue({
+          title: checklist.title,
+        });
       }
     });
   }
