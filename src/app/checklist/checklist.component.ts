@@ -6,7 +6,7 @@ import { ChecklistService } from '../shared/data-access/checklist.service';
 import { ChecklistItem } from '../shared/interfaces/check-list-item';
 import { FormModalComponent } from '../shared/ui/form-modal.component';
 import { ModalComponent } from '../shared/ui/modal.component';
-import { ChecklistItemService } from './data-access/check-list-item.service';
+import { ChecklistItemService } from './data-access/checklist-item.service';
 import { ChecklistHeaderComponent } from './ui/checklist-header.component';
 import { ChecklistItemList } from './ui/checklist-item-list.component';
 

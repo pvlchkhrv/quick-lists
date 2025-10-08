@@ -1,0 +1,112 @@
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject } from 'rxjs';
+import {
+  AddChecklistItem,
+  ChecklistItem,
+  EditChecklistItem,
+  RemoveChecklistItem
+} from '../../shared/interfaces/check-list-item';
+import { ChecklistItemStorageService } from './checklist-item-storage.service';
+
+export interface ChecklistItemsState {
+  checklistItems: ChecklistItem[];
+  loaded: boolean;
+  error: string | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ChecklistItemService {
+  private checklistItemStorage = inject(ChecklistItemStorageService);
+
+  // state
+  private state = signal<ChecklistItemsState>({
+    checklistItems: [],
+    loaded: false,
+    error: null,
+  });
+
+  // selectors
+  checklistItems = computed(() => this.state().checklistItems);
+  loaded = computed(() => this.state().loaded);
+
+  // sources
+  add$ = new Subject<AddChecklistItem>();
+  edit$ = new Subject<EditChecklistItem>();
+  remove$ = new Subject<RemoveChecklistItem>();
+  toggle$ = new Subject<ChecklistItem['id']>();
+  reset$ = new Subject<ChecklistItem['id']>();
+  private checklistsLoaded$ = this.checklistItemStorage.loadChecklistItems();
+
+
+  constructor() {
+    // reducers
+    this.checklistsLoaded$.pipe(takeUntilDestroyed()).subscribe({
+      next: (checklistItems) =>
+        this.state.update((state) => ({
+          ...state,
+          checklistItems,
+          loaded: true
+        })),
+      error: (err) => this.state.update(state => ({ ...state, error: err })),
+    });
+
+
+    this.add$.pipe(takeUntilDestroyed()).subscribe((itemToAdd) =>
+      this.state.update((state) => ({
+        ...state,
+        checklistItems: [
+          ...state.checklistItems,
+          {
+            ...itemToAdd.item,
+            id: Date.now().toString(),
+            checklistId: itemToAdd.checklistId,
+            checked: false,
+          },
+        ],
+      }))
+    );
+
+    this.edit$.pipe(takeUntilDestroyed()).subscribe((itemToEdit) => {
+      this.state.update(state => ({
+        ...state,
+        checklistItems: state.checklistItems.map(
+          item => item.id === itemToEdit.id ? ({ ...item, ...itemToEdit.data }) : item
+        )
+      }))
+    });
+
+    this.remove$.pipe(takeUntilDestroyed()).subscribe((itemToRemove) => {
+      this.state.update(state => ({
+        ...state,
+        checklistItems: state.checklistItems.filter(item => item.id !== itemToRemove)
+      }));
+    });
+
+    this.toggle$.pipe(takeUntilDestroyed()).subscribe((id) => {
+      this.state.update(state => ({
+        ...state,
+        checklistItems: state.checklistItems.map(
+          item => item.id === id ? ({ ...item, checked: !item.checked }) : item
+        )
+      }));
+    });
+
+    this.reset$.pipe(takeUntilDestroyed()).subscribe((checklistId) => {
+      this.state.update(state => ({
+        ...state,
+        checklistItems: state.checklistItems.map((item) =>
+          item.checklistId === checklistId ? { ...item, checked: false } : item
+        ),
+      }))
+    });
+
+    effect(() => {
+      if (this.loaded()) {
+        this.checklistItemStorage.saveChecklistItems(this.checklistItems());
+      }
+    });
+  }
+}
