@@ -6,7 +6,7 @@ import { ChecklistService } from '../shared/data-access/checklist.service';
 import { ChecklistItem } from '../shared/interfaces/check-list-item';
 import { FormModalComponent } from '../shared/ui/form-modal.component';
 import { ModalComponent } from '../shared/ui/modal.component';
-import { ChecklistItemService } from './data-access/check-list.service';
+import { ChecklistItemService } from './data-access/check-list-item.service';
 import { ChecklistHeaderComponent } from './ui/checklist-header.component';
 import { ChecklistItemList } from './ui/checklist-item-list.component';
 
@@ -14,10 +14,17 @@ import { ChecklistItemList } from './ui/checklist-item-list.component';
   standalone: true,
   selector: 'app-checklist',
   template: `
-    @if (checklist(); as checklist){
-    <app-checklist-header [checklist]="checklist" (addItem)="checklistItemBeingEdited.set({})" />
+    @if (checklist(); as checklist) {
+      <app-checklist-header
+        [checklist]="checklist"
+        (addItem)="checklistItemBeingEdited.set({})"
+        (resetChecklist)="checklistItemService.reset$.next($event)"
+      />
     }
-    <app-checklist-item-list [checklistItems]="items()" />
+    <app-checklist-item-list
+      [checklistItems]="items()"
+      (toggle)="checklistItemService.toggle$.next($event)"
+    />
     <app-modal [isOpen]="!!checklistItemBeingEdited()">
       <ng-template>
         <app-form-modal
