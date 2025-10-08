@@ -18,6 +18,13 @@ import { Checklist } from '../../shared/interfaces/checklist';
     </header>
   `,
   imports: [RouterLink],
+  styles:[
+    `
+      button {
+        margin-left: 1rem;
+      }
+    `,
+  ]
 })
 export class ChecklistHeaderComponent {
   @Input({ required: true }) checklist!: Checklist;
